@@ -1,7 +1,7 @@
 #!/usr/bin/enb python3
 
 import argparse
-from modules import system_init
+from modules.system_init import init
 
 parser = argparse.ArgumentParser(description="")
 subparser = parser.add_subparsers(dest="command")
@@ -11,7 +11,7 @@ init_parser = subparser.add_parser("init", help="")
 args = parser.parse_args()
 
 if args.command == "init":
-    init_system()
+    init()
 elif args.command == "update":
     update_bibliographies()
 elif args.command == "add":
