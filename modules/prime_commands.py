@@ -1,10 +1,11 @@
 import os
 import yaml
 import re
+from .markdown import Markdown
 
 # declaring variables used throughout module
 REGISTERS = ['', '.notes-register', '.references-register', '.projects-register']
-FILE_TYPES = {1:"note", 2:"reference", 3:"project"}
+FILE_TYPES = ['Note', 'Reference', 'Project']
 
 def update_metadata(path: str, field: str, value: str) -> None:
     metadata_pattern = re.compile(r'^---\n(.*?)\n---', re.DOTALL | re.MULTILINE)
@@ -28,54 +29,95 @@ def update_metadata(path: str, field: str, value: str) -> None:
     with open(path, 'w') as file:
         file.write(updated_content)
 
-def find_markdowns(directory):
-    # creates a dictionary of key: value pairs
-    # key = root of files
-    # value = list of .md files within directory that are not .bibliography files
-    # ignores .directories
+# def find_markdowns(directory):
+#     # creates a dictionary of key: value pairs
+#     # key = root of files
+#     # value = list of .md files within directory that are not .bibliography files
+#     # ignores .directories
+#
+#     root_markdowns={}
+#     sub_directories = [dir[0] for dir in os.walk(directory)]
+#                        # if not dir[0].endswith(f"{directory}")]
+#     for sub_directory in sub_directories:
+#         markdowns = [file for file in os.listdir(sub_directory) 
+#                      if file.endswith(".md") and (file != "Bibliography.md" and file != "bibliography.md")]
+#
+#         root_markdowns.update({sub_directory: markdowns})
+#
+#     return root_markdowns
 
-    root_markdowns={}
-    sub_directories = [dir[0] for dir in os.walk(directory)]
-                       # if not dir[0].endswith(f"{directory}")]
-    for sub_directory in sub_directories:
-        markdowns = [file for file in os.listdir(sub_directory) 
-                     if file.endswith(".md") and (file != "Bibliography.md" and file != "bibliography.md")]
+def find_markdowns(directory_path):
+    # returns list of Markdown objects based on find_markdowns_paths
+    markdowns = []
+    markdown_paths = find_markdowns_paths(directory_path)
+    for path in markdown_paths:
+        markdowns.append(Markdown(path))
+    return markdowns
 
-        root_markdowns.update({sub_directory: markdowns})
-
-    return root_markdowns
+def find_markdowns_paths(directory_path):
+    # returns a list of markdown paths within directory - includes paths nested in subdirectories
+    dir_markdowns = []
+    subdir_markdowns = []
+    with os.scandir(directory_path) as entries:
+        for entry in entries:
+            if not entry.name.startswith('.') and entry.is_dir():
+                subdir_markdowns = subdir_markdowns + find_markdowns_paths(entry.path)
+            elif not entry.name.startswith('.') and entry.name.endswith('.md'):
+                dir_markdowns.append(entry.path)
+        if len(subdir_markdowns) == 0:
+            return dir_markdowns
+        else:
+            return dir_markdowns + subdir_markdowns
 
 def init():
-    # links = {name: {frontlinks:[]}, backlinks:[]}}
     # initialize zettelkasten in current directory
     current_directory = os.getcwd()
-
     markdowns = find_markdowns(current_directory)
 
-    for register in REGISTERS:
-        os.makedirs(os.path.join(current_directory, register), exist_ok=True)
-        with open(os.path.join(current_directory, register, 'Bibliography.md'), 'w') as bibliography:
-            bibliography.write(f"# Bibliography{register}\n")
+    # create hidden register
+    # use only one register to store all other bibliographies
+    os.makedirs(os.path.join(current_directory, ".register"), exist_ok=True)
+    # init does not make bibliography files
 
-    manual = True if input("Manually class each .md file?(y/n)") == "y" else False
-    for root in markdowns:
-        for markdown in markdowns.get(root):
-            if manual == True:
-                print(f"Class the file '{markdown}' as:")
-                print("1. Note")
-                print("2. Reference")
-                print("3. Project")
-                choice = int(input("(1/2/3)"))
+    print(markdown.name for markdown in markdowns)
+    # print("\n".join([markdown.name for markdown in markdowns]))
+    manual = True if input(f"There are {len(markdowns)} .md files in directory.\nManually class each file?(y/n)") == "y" else False
 
-                while choice not in [1, 2, 3]:
-                   print("Enter 1, 2, or 3")
-                   choice = int(input("(1/2/3)"))
+    for markdown in markdowns:
+        if manual == True:
+            print(f"Class the file '{markdown.name}' as:")
+            type_index = 1
+            for file_type in FILE_TYPES:
+                print(f"{type_index}. {file_type}")
+                type_index += 1
+            choice = int(input("Choose: " + "/".join([str(n+1) for n in range(type_index-1)]) + "\n"))
 
-                update_metadata(os.path.join(root, markdown), "type", FILE_TYPES[choice])
-            else:
-                update_metadata(os.path.join(root, markdown), "type", "note")
+            # while int(input("Choose: " + "/".join([str(n+1) for n in range(type_index)]))) not in range(type_index+1):
+            #     print("Not a valid option")
 
-    update(markdowns)
+            markdown.type_name = FILE_TYPES[choice - 1]
+        else:
+            # default type
+            markdown.type_name = "Note"
+
+
+    # for root in markdowns:
+    #     for markdown in markdowns.get(root):
+    #         if manual == True:
+    #             print(f"Class the file '{markdown}' as:")
+    #             print("1. Note")
+    #             print("2. Reference")
+    #             print("3. Project")
+    #             choice = int(input("(1/2/3)"))
+    #
+    #             while choice not in [1, 2, 3]:
+    #                print("Enter 1, 2, or 3")
+    #                choice = int(input("(1/2/3)"))
+    #
+    #             update_metadata(os.path.join(root, markdown), "type", FILE_TYPES[choice])
+    #         else:
+    #             update_metadata(os.path.join(root, markdown), "type", "note")
+    update()
 
 def get_links(path):
     with open(path, 'r') as file:

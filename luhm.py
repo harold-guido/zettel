@@ -1,7 +1,7 @@
 #!/usr/bin/enb python3
 
 import argparse
-from modules.system_init import init, update
+from modules.prime_commands import init, update
 
 parser = argparse.ArgumentParser(description="")
 subparser = parser.add_subparsers(dest="command")
