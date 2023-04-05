@@ -1,0 +1,50 @@
+import os
+import yaml
+import re
+
+class Markdown:
+    def __init__(self, path):
+        self.path = path
+        self.name = os.path.basename(path)
+        self.type_name = ""
+        self.front_links = []
+        self.back_links = []
+
+    def update_front_links(self):
+        return("Update front links")
+        
+    def update_back_links(self, other_markdowns):
+        with open(self.path, 'r') as file:
+            content = file.read()
+
+        # match the path string inside of each link
+        link_pattern = re.compile(r'\[.*?\]\((.*?)\)', re.MULTILINE)
+
+        # get list of paths
+        self.front_links = link_pattern.findall(content)
+        # remove duplicates
+        counter_a = 0
+        counter_b = 0
+        for reference_link in self.front_links:
+            for check_link in self.front_links:
+                if os.path.samefile(reference_link, check_link) and counter_a != counter_b:
+                    self.front_links.remove(check_link)
+                counter_b++
+
+            
+            if os.path.samefile(link, )
+
+        links = list(dict.fromkeys(temp_links))
+        file_links = []
+        broken_file_links = []
+
+        for path in links:
+            # check if link is to an existing file
+            if os.path.isfile(path):
+                file_links.append(path)
+            elif not os.path.isfile(path) and os.path.isdir(os.path.dirname(path)):
+                file_links.append(path)
+                broken_file_links.append(path)
+
+        return [file_links, broken_file_links]
+        return("Update back links")

@@ -7,45 +7,8 @@ from .markdown import Markdown
 REGISTERS = ['', '.notes-register', '.references-register', '.projects-register']
 FILE_TYPES = ['Note', 'Reference', 'Project']
 
-def update_metadata(path: str, field: str, value: str) -> None:
-    metadata_pattern = re.compile(r'^---\n(.*?)\n---', re.DOTALL | re.MULTILINE)
-    # update yaml metadata
-    with open(path, 'r') as file:
-        content = file.read()
-    metadata_match = metadata_pattern.match(content)
 
-    if metadata_match:
-        current_metadata = yaml.load(metadata_match.group(1), Loader=yaml.SafeLoader)
-        current_metadata[field] = value
-        updated_metadata = yaml.dump(current_metadata)
-        updated_content = f"---\n{updated_metadata}---{content[metadata_match.end():]}"
-    else:
-        metadata = {
-            field: value
-        }
-        yaml_metadata = yaml.dump(metadata)
-        updated_content = f"---\n{yaml_metadata}\n---{content}"
-
-    with open(path, 'w') as file:
-        file.write(updated_content)
-
-# def find_markdowns(directory):
-#     # creates a dictionary of key: value pairs
-#     # key = root of files
-#     # value = list of .md files within directory that are not .bibliography files
-#     # ignores .directories
-#
-#     root_markdowns={}
-#     sub_directories = [dir[0] for dir in os.walk(directory)]
-#                        # if not dir[0].endswith(f"{directory}")]
-#     for sub_directory in sub_directories:
-#         markdowns = [file for file in os.listdir(sub_directory) 
-#                      if file.endswith(".md") and (file != "Bibliography.md" and file != "bibliography.md")]
-#
-#         root_markdowns.update({sub_directory: markdowns})
-#
-#     return root_markdowns
-
+# Happy
 def find_markdowns(directory_path):
     # returns list of Markdown objects based on find_markdowns_paths
     markdowns = []
@@ -54,6 +17,7 @@ def find_markdowns(directory_path):
         markdowns.append(Markdown(path))
     return markdowns
 
+# Happy
 def find_markdowns_paths(directory_path):
     # returns a list of markdown paths within directory - includes paths nested in subdirectories
     dir_markdowns = []
@@ -69,6 +33,7 @@ def find_markdowns_paths(directory_path):
         else:
             return dir_markdowns + subdir_markdowns
 
+# Happy
 def init():
     # initialize zettelkasten in current directory
     current_directory = os.getcwd()
@@ -119,73 +84,60 @@ def init():
     #             update_metadata(os.path.join(root, markdown), "type", "note")
     update()
 
-def get_links(path):
+# To become Markdown method
+def update_metadata(path: str, field: str, value: str) -> None:
+    metadata_pattern = re.compile(r'^---\n(.*?)\n---', re.DOTALL | re.MULTILINE)
+    # update yaml metadata
     with open(path, 'r') as file:
         content = file.read()
+    metadata_match = metadata_pattern.match(content)
 
-    # match the path string inside of each link
-    link_pattern = re.compile(r'\[.*?\]\((.*?)\)', re.MULTILINE)
-    # get list of paths
-    links = link_pattern.findall(content)
-    # remove duplicates
-    links = list(dict.fromkeys(links))
-    file_links = []
-    broken_file_links = []
+    if metadata_match:
+        current_metadata = yaml.load(metadata_match.group(1), Loader=yaml.SafeLoader)
+        current_metadata[field] = value
+        updated_metadata = yaml.dump(current_metadata)
+        updated_content = f"---\n{updated_metadata}---{content[metadata_match.end():]}"
+    else:
+        metadata = {
+                field: value
+                }
+        yaml_metadata = yaml.dump(metadata)
+        updated_content = f"---\n{yaml_metadata}\n---{content}"
 
-    for path in links:
-        # check if link is to an existing file
-        if os.path.isfile(path):
-            file_links.append(path)
-        elif not os.path.isfile(path) and os.path.isdir(os.path.dirname(path)):
-            file_links.append(path)
-            broken_file_links.append(path)
+    with open(path, 'w') as file:
+        file.write(updated_content)
 
-    return [file_links, broken_file_links]
-
-def draw_tree(links):
-    
-    return("Hello World")
+# def draw_tree(links):
+#     
+#     return("Hello World")
     # draws file tree diagram of link structure within each bibliography
 
-def update(markdowns={}, current_directory=os.getcwd()):
-    print('runs update')
-
-    # update metadata: type, links, backlinks using yaml
-
-    # create dictionary in format:
-    # links = {name: {links:[], backlinks:[]}}
-    links = {}
+def update(markdowns=[]):
+    if len(markdowns) == 0 : markdowns=find_markdowns(os.getcwd())
 
     # NOTE: It is at least the user's responsibility to use [link](./filename)
     # NOTE: For now user has to write link paths relative to root directory of zettel
     # NOTE: Relative paths in format
     # NOTE: ./file or ./dir/dir/.../file
 
-    # first go through each markdown file and collect links in format []()
-    markdowns = find_markdowns(current_directory) if markdowns != find_markdowns(current_directory) else markdowns
+    # populate frontlinks
+    for markdown in markdowns:
+        markdown.update_front_links()
 
-    for root in markdowns:
-        # populate front links of links dict
-        for markdown in markdowns.get(root):
-            links.update({ os.path.join(root, markdown):{ 
-                # get front links in format [[link paths],[broken or todo links]]
-                'front_links': get_links(os.path.join(root, markdown)), 'back_links': []}})
+    # populate backlinks now that frontlinks have been updated
+    for markdown in markdowns:
+        markdown.update_back_links(markdowns)
 
     # notify user of potentially broken or uncompleted links
 
-    # populate backlinks
-    # use os.path.samefile(path1, path2)
+    for broken_link in markdown.broken_links:
+        print(f"")
 
-    for markdown_path_reference in links:
-        for markdown_path_check in links:
-            if markdown_path_reference != markdown_path_check:
-                for file_path in links.get(markdown_path_check).get('front_links')[0]:
-                    if file_path not in links.get(markdown_path_check).get('front_links')[1]:
-                        if os.path.samefile(markdown_path_reference, file_path):
-                            links.get(markdown_path_reference).get('back_links').append(markdown_path_check)
+
+    # update metadata: type, links, backlinks using yaml
 
     # using os.path.basename(path)
-    draw_tree(links)
+    # draw_tree(links)
 
     # loop through links[name] and for each link add the corresponding backlink to file if it exists
     # if file does not exist add link name to a links["to-do"]
