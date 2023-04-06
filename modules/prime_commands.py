@@ -7,8 +7,6 @@ from .markdown import Markdown
 REGISTERS = ['', '.notes-register', '.references-register', '.projects-register']
 FILE_TYPES = ['Note', 'Reference', 'Project']
 
-
-# Happy
 def find_markdowns(directory_path):
     # returns list of Markdown objects based on find_markdowns_paths
     markdowns = []
@@ -17,7 +15,6 @@ def find_markdowns(directory_path):
         markdowns.append(Markdown(path))
     return markdowns
 
-# Happy
 def find_markdowns_paths(directory_path):
     # returns a list of markdown paths within directory - includes paths nested in subdirectories
     dir_markdowns = []
@@ -33,7 +30,6 @@ def find_markdowns_paths(directory_path):
         else:
             return dir_markdowns + subdir_markdowns
 
-# Happy
 def init():
     # initialize zettelkasten in current directory
     current_directory = os.getcwd()
@@ -64,55 +60,13 @@ def init():
         else:
             # default type
             markdown.type_name = "Note"
-
-
-    # for root in markdowns:
-    #     for markdown in markdowns.get(root):
-    #         if manual == True:
-    #             print(f"Class the file '{markdown}' as:")
-    #             print("1. Note")
-    #             print("2. Reference")
-    #             print("3. Project")
-    #             choice = int(input("(1/2/3)"))
-    #
-    #             while choice not in [1, 2, 3]:
-    #                print("Enter 1, 2, or 3")
-    #                choice = int(input("(1/2/3)"))
-    #
-    #             update_metadata(os.path.join(root, markdown), "type", FILE_TYPES[choice])
-    #         else:
-    #             update_metadata(os.path.join(root, markdown), "type", "note")
     update()
-
-# To become Markdown method
-def update_metadata(path: str, field: str, value: str) -> None:
-    metadata_pattern = re.compile(r'^---\n(.*?)\n---', re.DOTALL | re.MULTILINE)
-    # update yaml metadata
-    with open(path, 'r') as file:
-        content = file.read()
-    metadata_match = metadata_pattern.match(content)
-
-    if metadata_match:
-        current_metadata = yaml.load(metadata_match.group(1), Loader=yaml.SafeLoader)
-        current_metadata[field] = value
-        updated_metadata = yaml.dump(current_metadata)
-        updated_content = f"---\n{updated_metadata}---{content[metadata_match.end():]}"
-    else:
-        metadata = {
-                field: value
-                }
-        yaml_metadata = yaml.dump(metadata)
-        updated_content = f"---\n{yaml_metadata}\n---{content}"
-
-    with open(path, 'w') as file:
-        file.write(updated_content)
 
 # def draw_tree(links):
 #     
 #     return("Hello World")
-    # draws file tree diagram of link structure within each bibliography
 
-def update(markdowns=[]):
+def update(markdowns=[], ):
     if len(markdowns) == 0 : markdowns=find_markdowns(os.getcwd())
 
     # NOTE: It is at least the user's responsibility to use [link](./filename)
@@ -128,13 +82,9 @@ def update(markdowns=[]):
     for markdown in markdowns:
         markdown.update_back_links(markdowns)
 
-    # notify user of potentially broken or uncompleted links
-
-    for broken_link in markdown.broken_links:
-        print(f"")
-
-
     # update metadata: type, links, backlinks using yaml
+    for markdown in markdowns:
+        markdown.update_metadata()
 
     # using os.path.basename(path)
     # draw_tree(links)

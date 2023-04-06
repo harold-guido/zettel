@@ -1,4 +1,5 @@
 import os
+from os.path import relpath
 import yaml
 import re
 
@@ -51,4 +52,30 @@ class Markdown:
                     self.back_links.append(markdown.path)
 
     def update_metadata(self):
+        # uses yaml package to update metadata in the file
+        updated_fields = {
+            "Type": self.type_name,
+            "Front links": ", ".join([os.path.relpath(path) for path in self.front_links]),
+            "Back links": ", ".join([os.path.relpath(path) for path in self.back_links])
+        }
+        metadata_pattern = re.compile(r'^---\n(.*?)\n---', re.DOTALL | re.MULTILINE)
 
+        with open(self.path, 'r') as file:
+            content = file.read()
+
+        metadata_match = metadata_pattern.match(content)
+        current_metadata = {}
+
+        if metadata_match:
+            current_metadata = yaml.safe_load(metadata_match.group(1))
+            new_content = content[metadata_match.end()]
+        else: 
+            new_content = content
+        
+        current_metadata.update(updated_fields)
+        metadata = yaml.dump(current_metadata)
+
+        updated_content = f"---\n{metadata}---\n\n{new_content}"
+
+        with open(self.path, 'w') as file:
+            file.write(updated_content)
