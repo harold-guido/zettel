@@ -65,6 +65,14 @@ def init():
 # def draw_tree(links):
 #     
 #     return("Hello World")
+def markdown_method(markdowns, method):
+    for markdown in markdowns:
+        if method == "front":
+            markdown.update_front_links()
+        elif method == "back":
+            markdown.update_back_links(markdowns)
+        elif method == "meta":
+            markdown.update_metadata()
 
 def update(markdowns=[], ):
     if len(markdowns) == 0 : markdowns=find_markdowns(os.getcwd())
@@ -75,16 +83,13 @@ def update(markdowns=[], ):
     # NOTE: ./file or ./dir/dir/.../file
 
     # populate frontlinks
-    for markdown in markdowns:
-        markdown.update_front_links()
+    markdown_method(markdowns, "front")
 
     # populate backlinks now that frontlinks have been updated
-    for markdown in markdowns:
-        markdown.update_back_links(markdowns)
+    markdown_method(markdowns, "back")
 
     # update metadata: type, links, backlinks using yaml
-    for markdown in markdowns:
-        markdown.update_metadata()
+    markdown_method(markdowns, "meta")
 
     # using os.path.basename(path)
     # draw_tree(links)
