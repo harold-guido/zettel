@@ -52,13 +52,9 @@ def has_most_links(markdowns):
 # the tree will have to be one level deep
 # divide the functions used to build the tree
 def newline_concat(string_list):
-    concat_string = ""
-    for string in string_list:
-        if concat_string == "":
-            concat_string = string
-        else:
-            concat_string += "\n" + string
-    return concat_string
+    return("\n".join(string_list))
+
+# def create_anchor()
 
 # draws one tree per topic
 def draw_topic_tree(topic_markdown, markdowns):
