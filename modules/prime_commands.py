@@ -7,6 +7,7 @@ from .markdown import Markdown
 REGISTERS = ['', '.notes-register', '.references-register', '.projects-register']
 FILE_TYPES = ['Note', 'Reference', 'Project']
 
+# HELPER FUNCTIONS
 def find_markdowns(directory_path):
     # returns list of Markdown objects based on find_markdowns_paths
     markdowns = []
@@ -30,6 +31,61 @@ def find_markdowns_paths(directory_path):
         else:
             return dir_markdowns + subdir_markdowns
 
+def markdown_method(markdowns, method):
+    for markdown in markdowns:
+        if method == "front":
+            markdown.update_front_links()
+        elif method == "back":
+            markdown.update_back_links(markdowns)
+        elif method == "meta":
+            markdown.update_metadata()
+
+def has_most_links(markdowns):
+    has_most_links = None
+    for reference_markdown in markdowns:
+        if not isinstance(has_most_links, Markdown):
+            has_most_links = reference_markdown
+        elif len(reference_markdown.front_links) > len(has_most_links.front_links):
+            has_most_links = reference_markdown
+    return(has_most_links)
+
+# the tree will have to be one level deep
+# divide the functions used to build the tree
+def newline_concat(string_list):
+    concat_string = ""
+    for string in string_list:
+        if concat_string == "":
+            concat_string = string
+        else:
+            concat_string += "\n" + string
+    return concat_string
+
+# draws one tree per topic
+def draw_topic_tree(topic_markdown, markdowns):
+    return("Hello World")
+
+# one topic being a node not linked to previously but with the greatest number of links
+
+def draw_tree(markdowns, linked_markdowns=[], previous_markdown=None):
+    if len(markdowns.front_links) == 1:
+        return(markdowns[0].name)
+    else:
+        markdown = has_most_links(markdowns)
+        markdowns.remove(markdown)
+    return("Hello World")
+# tree is essentially concatonation of
+# "| | | └-file\n"
+# ├
+# │
+# └
+# ─
+# .append("\n" + draw_tree)
+
+def make_bibliography(markdowns):
+    return("Hello World")
+
+# PRIMARY FUNCTIONS
+# command: init
 def init():
     # initialize zettelkasten in current directory
     current_directory = os.getcwd()
@@ -41,7 +97,6 @@ def init():
     # init does not make bibliography files
 
     print(markdown.name for markdown in markdowns)
-    # print("\n".join([markdown.name for markdown in markdowns]))
     manual = True if input(f"There are {len(markdowns)} .md files in directory.\nManually class each file?(y/n)") == "y" else False
 
     for markdown in markdowns:
@@ -62,37 +117,19 @@ def init():
             markdown.type_name = "Note"
     update()
 
-# def draw_tree(links):
-#     
-#     return("Hello World")
-def markdown_method(markdowns, method):
-    for markdown in markdowns:
-        if method == "front":
-            markdown.update_front_links()
-        elif method == "back":
-            markdown.update_back_links(markdowns)
-        elif method == "meta":
-            markdown.update_metadata()
-
+# command: update
 def update(markdowns=[], ):
     if len(markdowns) == 0 : markdowns=find_markdowns(os.getcwd())
 
-    # NOTE: It is at least the user's responsibility to use [link](./filename)
-    # NOTE: For now user has to write link paths relative to root directory of zettel
-    # NOTE: Relative paths in format
-    # NOTE: ./file or ./dir/dir/.../file
-
     # populate frontlinks
     markdown_method(markdowns, "front")
-
     # populate backlinks now that frontlinks have been updated
     markdown_method(markdowns, "back")
-
     # update metadata: type, links, backlinks using yaml
     markdown_method(markdowns, "meta")
 
     # using os.path.basename(path)
-    # draw_tree(links)
+    # draw_tree(markdowns)
 
     # loop through links[name] and for each link add the corresponding backlink to file if it exists
     # if file does not exist add link name to a links["to-do"]

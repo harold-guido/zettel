@@ -1,7 +1,7 @@
 import unittest
 import os
 import shutil
-from modules.prime_commands import update, Markdown
+from modules.prime_commands import update, has_most_links, newline_concat, Markdown
 
 class TestLuhm(unittest.TestCase):
     def setUp(self):
@@ -27,6 +27,12 @@ class TestLuhm(unittest.TestCase):
 
         with open(self.file_three, "w") as file_three:
             file_three.write("[link to file_one](./file_one.md)\n[link to file_two](./file_two.md)\n")
+
+        # with open(self.file_four, "w") as file_four:
+        #     file_four.write("")
+        #
+        # with open(self.file_five, "w") as file_five:
+        #     file_five.write("")
 
     def tearDown(self):
         # Remove the temporary directory after each test
@@ -54,6 +60,28 @@ class TestLuhm(unittest.TestCase):
             self.assertIn("Front links", content_three)
             self.assertIn("Back links", content_three)
 
+    def test_has_most_links(self):
+        # Run the has_most_links function
+        markdowns_one = [Markdown(self.file_one), Markdown(self.file_two), Markdown(self.file_three)]
+        update(markdowns_one)
+
+        result_one = has_most_links(markdowns_one).name
+        self.assertEqual("file_three.md", result_one)
+
+        markdowns_two = [Markdown(self.file_one), Markdown(self.file_two)]
+        update(markdowns_two)
+
+        result_two = has_most_links(markdowns_two).name
+        self.assertEqual("file_one.md", result_two)
+
+    # def test_draw_tree(self):
+    #     markdowns = [Markdown(self.file_one), Markdown(self.file_two), Markdown(self.file_three)]
+
+    def test_newline_concat(self):
+        test_list = ["This", "Is", "A", "Test", "String"]
+
+        result = newline_concat(test_list)
+        self.assertEqual("This\nIs\nA\nTest\nString",result)
 
 if __name__ == '__main__':
         unittest.main()

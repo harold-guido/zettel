@@ -18,6 +18,7 @@ class Markdown:
     def update_front_links(self):
         with open(self.path, 'r') as file:
             content = file.read()
+            print(f"This is the content for {self.name} file:\n{content}\n")
 
         # match the path string inside of each link
         link_pattern = re.compile(r'\[.*?\]\((.*?)\)', re.MULTILINE)
@@ -68,7 +69,7 @@ class Markdown:
 
         if metadata_match:
             current_metadata = yaml.safe_load(metadata_match.group(1))
-            new_content = content[metadata_match.end()]
+            new_content = content[metadata_match.end():]
         else: 
             new_content = content
         
