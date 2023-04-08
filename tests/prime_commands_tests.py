@@ -1,7 +1,7 @@
 import unittest
 import os
 import shutil
-from modules.prime_commands import update, has_most_links, newline_concat, Markdown
+from modules.prime_commands import update, has_most_links, newline_concat, create_anchor, Markdown
 
 class TestLuhm(unittest.TestCase):
     def setUp(self):
@@ -82,6 +82,10 @@ class TestLuhm(unittest.TestCase):
 
         result = newline_concat(test_list)
         self.assertEqual("This\nIs\nA\nTest\nString",result)
+
+    def test_create_anchor(self):
+        result = create_anchor(Markdown(self.file_one))
+        self.assertEqual("<a name=\"file_one\">file_one<\\a>", result)
 
 if __name__ == '__main__':
         unittest.main()

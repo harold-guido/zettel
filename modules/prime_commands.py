@@ -54,7 +54,10 @@ def has_most_links(markdowns):
 def newline_concat(string_list):
     return("\n".join(string_list))
 
-# def create_anchor()
+def create_anchor(markdown):
+    bare_name = f"{markdown.name}".split(".")[0]
+    anchor_string = f"<a name=\"{bare_name}\">{bare_name}<\\a>"
+    return(anchor_string)
 
 # draws one tree per topic
 def draw_topic_tree(topic_markdown, markdowns):
